@@ -1,48 +1,47 @@
-const player = document.querySelector('.flex');
-const progress = document.querySelector('.progress__filled');
-const toggle = document.querySelector('.toggle');
-const sliders = document.querySelectorAll('.player__slider');
-const skipButtons = document.querySelectorAll('[data-skip]');
 
-function togglePlay() {
-  const method = player.paused ? 'play' : 'pause';
-  player[method]();
+const player = document.querySelector(".player");
+const video = player.querySelector(".viewer");
+const progress = player.querySelector(".progress");
+const progressBar = player.querySelector(".progress__filled");
+const toggle = player.querySelector(".toggle");
+const skipButtons = player.querySelectorAll("[data-skip]");
+const ranges = player.querySelectorAll(".player__slider");
+
+let isPaused = true;
+
+function togglePlayer() {
+  if (isPaused) {
+    video.play();
+    isPaused = false;
+    toggle.textContent = "❚❚";
+    toggle.style.fontSize = "16px";
+  } else {
+    video.pause();
+    isPaused = true;
+    toggle.textContent = "►";
+    toggle.style.fontSize = "25px";
+  }
 }
 
-function updateButton() {
-  const icon = this.paused ? '►' : '❚ ❚';
-  toggle.textContent = icon;
+toggle.addEventListener("click", togglePlayer);
+video.addEventListener("click", togglePlayer);
+
+function handleProgress() {
+  const percent = (video.currentTime / video.duration) * 100;
+  progressBar.style.flexBasis = `${percent}%`;
+  if (percent === 100) togglePlayer();
 }
 
 function skip() {
-  player.currentTime += parseFloat(this.dataset.skip);
+  video.currentTime += parseFloat(this.dataset.skip);
 }
 
 function handleRangeUpdate() {
-  player[this.name] = this.value;
+  video[this.name] = this.value;
 }
 
-function handleProgress() {
-  const percent = (player.currentTime / player.duration) * 100;
-  progress.style.flexBasis = `${percent}%`;
-}
+video.addEventListener("timeupdate", handleProgress);
 
-function scrub(e) {
-  const scrubTime = (e.offsetX / progress.offsetWidth) * player.duration;
-  player.currentTime = scrubTime;
-}
+skipButtons.forEach((button) => button.addEventListener("click", skip));
 
-player.addEventListener('click', togglePlay);
-player.addEventListener('play', updateButton);
-player.addEventListener('pause', updateButton);
-player.addEventListener('timeupdate', handleProgress);
-toggle.addEventListener('click', togglePlay);
-skipButtons.forEach(button => button.addEventListener('click', skip));
-sliders.forEach(slider => slider.addEventListener('change', handleRangeUpdate));
-sliders.forEach(slider => slider.addEventListener('mousemove', handleRangeUpdate));
-
-let mousedown = false;
-progress.addEventListener('click', scrub);
-progress.addEventListener('mousemove', (e) => mousedown && scrub(e));
-progress.addEventListener('mousedown', () => mousedown = true);
-progress.addEventListener('mouseup', () => mousedown = false);
+ranges.forEach((range) => range.addEventListener("input", handleRangeUpdate)); 
